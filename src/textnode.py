@@ -17,8 +17,8 @@ class TextNode():
         self.url = url
 
     def __eq__(self, other):
-        if not isinstance(other, TextType):
-            raise Exception("not same type")
+        # if not isinstance(other, TextType):
+        #     raise Exception("not same type")
         return (
             self.text == other.text 
             and self.text_type == other.text_type 
