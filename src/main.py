@@ -5,6 +5,7 @@ import logging
 from copydirtodir import copy_dir_contents_clean
 from markdown_blocks import markdown_to_html_node
 from htmlnode import HTMLNode, LeafNode
+from pathlib import Path
 
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -33,12 +34,27 @@ def generate_page(from_path, template_path, dest_path):
     file_dict[template_path] = file_dict[template_path].replace("{{ Title }}", title)
     file_dict[template_path] = file_dict[template_path].replace("{{ Content }}", html_string)
 
-
-    with open(dest_path, "w") as f:
-        f.write(file_dict[template_path])
+    dest_dir_path = os.path.dirname(dest_path)
+    if dest_dir_path != "":
+        os.makedirs(dest_dir_path, exist_ok=True)
+    to_file = open(dest_path, "w")
+    to_file.write(file_dict[template_path])
+    # with open(dest_path, "w") as f:
+    #     f.write(file_dict[template_path])
     
 
+def generate_page_recursive(dir_path_content, template_path, dest_dir_path):
+    ## crawl every entry in content dir
+    list_dir = os.listdir(dir_path_content)
 
+    for item in list_dir:
+        from_path = os.path.join(dir_path_content, item)
+        dest_path = os.path.join(dest_dir_path, item)
+        if os.path.isfile(from_path):
+            dest_path = Path(dest_path).with_suffix(".html")
+            generate_page(from_path, template_path, dest_path)
+        else:
+            generate_page_recursive(from_path, template_path, dest_path)
 
     # try:
     #     with open(from_path, "r") as file:
@@ -59,14 +75,18 @@ def main():
     # first delete all contents of destination dir (public)
     # copy all files and subdirs, nested files, etc
     template = "/home/rayn/workspace/github.com/rayuhhh/static_site_generator/template.html"
-    content = "/home/rayn/workspace/github.com/rayuhhh/static_site_generator/content/index.md"
+    # content = "/home/rayn/workspace/github.com/rayuhhh/static_site_generator/content/index.md"
     source = "/home/rayn/workspace/github.com/rayuhhh/static_site_generator/static"
     destination = "/home/rayn/workspace/github.com/rayuhhh/static_site_generator/public"
     dest = "/home/rayn/workspace/github.com/rayuhhh/static_site_generator/public/index.html"
+    content = "/home/rayn/workspace/github.com/rayuhhh/static_site_generator/content"
     
     logging.info(f"hello")
     copy_dir_contents_clean(source, destination)
-    generate_page(content, template, dest)
+
+    #### changing generate_page to gen_page_recursive
+    #generate_page(content, template, dest)
+    generate_page_recursive(content, template, destination)
 
     # print("\n--- Verification ---")
     # print(f"Contents of 'public_test': {os.listdir('../public_test')}")
